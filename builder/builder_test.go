@@ -69,12 +69,12 @@ func TestStandardBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = builder.ExecuteDependenciesStage(false)
+	_, err = builder.ExecuteDependenciesStage(false, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = builder.ExecuteTestStage(false)
+	err = builder.ExecuteTestStage()
 	if err != nil {
 		t.Fatal(err)
 	}

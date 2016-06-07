@@ -22,7 +22,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var noCache bool
+var noEnvCache bool
+var noDepsCache bool
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -55,9 +56,8 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrapf(err, "failed to create builder")
 		}
-		b.DebugThisShit()
 
-		cacheID, err := b.ExecuteEnivronmentStage(!noCache, state.EnvironmentImageCache)
+		cacheID, err := b.ExecuteEnivronmentStage(!noEnvCache, state.EnvironmentImageCache)
 		if err != nil {
 			return errors.Wrapf(err, "failed to execute environment stage")
 		}
@@ -66,12 +66,16 @@ var runCmd = &cobra.Command{
 			WriteState()
 		}
 
-		err = b.ExecuteDependenciesStage(false)
+		cacheID, err = b.ExecuteDependenciesStage(!noEnvCache && !noDepsCache, state.DependenciesImageCache)
+		if cacheID != "" {
+			state.DependenciesImageCache = cacheID
+			WriteState()
+		}
 		if err != nil {
 			return errors.Wrapf(err, "failed to execute dependencies stage")
 		}
 
-		err = b.ExecuteTestStage(false)
+		err = b.ExecuteTestStage()
 		if err != nil {
 			return errors.Wrapf(err, "failed to execute test stage")
 		}
@@ -83,6 +87,7 @@ var runCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(runCmd)
 
-	runCmd.Flags().BoolVarP(&noCache, "no-cache", "N", false, "disable environment cache for this build.")
+	runCmd.Flags().BoolVarP(&noEnvCache, "no-environment-cache", "E", false, "disable environment cache for this build.")
+	runCmd.Flags().BoolVarP(&noDepsCache, "no-dependencies-cache", "D", false, "disable dependencies cache for this build.")
 
 }

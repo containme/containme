@@ -10,7 +10,8 @@ import (
 var state State
 
 type State struct {
-	EnvironmentImageCache string
+	EnvironmentImageCache  string
+	DependenciesImageCache string
 }
 
 func LoadState() {
