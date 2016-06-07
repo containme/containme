@@ -1,0 +1,4 @@
+image: golang:1.6-alpine
+workspace: /go/src
+cache_directories:
+- /go/src

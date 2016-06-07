@@ -1,0 +1,15 @@
+environment:
+  workspace: github.com/containme/containme
+  profile: ./containme.profile.yaml
+  after:
+    - apk add --update git curl
+
+dependencies:
+  before:
+    - curl -L https://github.com/Masterminds/glide/releases/download/0.10.2/glide-0.10.2-linux-amd64.tar.gz | tar xzfO - linux-amd64/glide > /bin/glide; chmod +x /bin/glide; glide -v
+  override:
+    - glide install
+
+test:
+  override:
+    - go test -v $(glide nv)
