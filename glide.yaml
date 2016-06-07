@@ -1,0 +1,11 @@
+package: github.com/containme/containme
+import:
+- package: github.com/pkg/errors
+- package: github.com/docker/engine-api
+- package: github.com/spf13/cobra
+  subpackages:
+  - cobra
+- package: github.com/ghodss/yaml
+- package: gopkg.in/stretchr/testify.v1
+  subpackages:
+  - assert

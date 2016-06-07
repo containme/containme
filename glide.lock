@@ -1,0 +1,98 @@
+hash: 505e3b4d51d3e0110808e5ce0130f4c63a11b5aaad8445369d6f81921c54d71c
+updated: 2016-06-07T02:42:44.447556346-06:00
+imports:
+- name: github.com/BurntSushi/toml
+  version: f0aeabca5a127c4078abb8c8d64298b147264b55
+- name: github.com/cloudfoundry-incubator/candiedyaml
+  version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
+- name: github.com/docker/distribution
+  version: feddf6cd4e439577ab270d8e3ba63a5d7c5c0d55
+  subpackages:
+  - reference
+  - digest
+- name: github.com/docker/engine-api
+  version: 8f30a1c59bd2bcd1f198ef8b077a8785615ea648
+  subpackages:
+  - client
+  - types
+  - types/container
+  - types/filters
+  - types/strslice
+  - client/transport
+  - client/transport/cancellable
+  - types/network
+  - types/reference
+  - types/registry
+  - types/time
+  - types/blkiodev
+  - types/versions
+- name: github.com/docker/go-connections
+  version: c7838b258fbfa3fe88eecfb2a0e08ea0dbd6a646
+  subpackages:
+  - sockets
+  - tlsconfig
+  - nat
+- name: github.com/docker/go-units
+  version: 09dda9d4b0d748c57c14048906d3d094a58ec0c9
+- name: github.com/fsnotify/fsnotify
+  version: 30411dbcefb7a1da7e84f75530ad3abe4011b4f8
+- name: github.com/ghodss/yaml
+  version: aa0c862057666179de291b67d9f093d12b5a8473
+- name: github.com/hashicorp/hcl
+  version: 9a905a34e6280ce905da1a32344b25e81011197a
+  subpackages:
+  - hcl/ast
+  - hcl/parser
+  - hcl/token
+  - json/parser
+  - hcl/scanner
+  - hcl/strconv
+  - json/scanner
+  - json/token
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/magiconair/properties
+  version: c265cfa48dda6474e208715ca93e987829f572f8
+- name: github.com/Microsoft/go-winio
+  version: 4f1a71750d95a5a8a46c40a67ffbed8129c2f138
+- name: github.com/mitchellh/mapstructure
+  version: 482a9fd5fa83e8c4e7817413b80f3eb8feec03ef
+- name: github.com/opencontainers/runc
+  version: ab10b6068b3f7ec99370eb66bf48592998cc9db1
+  subpackages:
+  - libcontainer/user
+- name: github.com/pkg/errors
+  version: b700c3e91831ea1e73f0cd28ddaaa8267fc61913
+- name: github.com/Sirupsen/logrus
+  version: 55eb11d21d2a31a3cc93838241d04800f52e823d
+  subpackages:
+  - formatters/logstash
+- name: github.com/spf13/cast
+  version: 27b586b42e29bec072fe7379259cc719e1289da6
+- name: github.com/spf13/cobra
+  version: f447048345b64b3247b29a679a14bd0da12c7f2f
+  subpackages:
+  - cobra
+- name: github.com/spf13/jwalterweatherman
+  version: 33c24e77fb80341fe7130ee7c594256ff08ccc46
+- name: github.com/spf13/pflag
+  version: cb88ea77998c3f024757528e3305022ab50b43be
+- name: github.com/spf13/viper
+  version: c1ccc378a054ea8d4e38d8c67f6938d4760b53dd
+- name: golang.org/x/net
+  version: 4876518f9e71663000c348837735820161a42df7
+  subpackages:
+  - context
+  - proxy
+- name: golang.org/x/sys
+  version: 076b546753157f758b316e59bcb51e6807c04057
+  subpackages:
+  - unix
+  - windows
+- name: gopkg.in/stretchr/testify.v1
+  version: f390dcf405f7b83c997eac1b06768bb9f44dec18
+  subpackages:
+  - assert
+- name: gopkg.in/yaml.v2
+  version: bef53efd0c76e49e6de55ead051f886bea7e9420
+devImports: []
