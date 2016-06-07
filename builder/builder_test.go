@@ -17,7 +17,7 @@ func TestStandardBuild(t *testing.T) {
 	}
 	spec := &BuildSpec{
 		Environment: EnvironmentStage{
-			Workspace: "/go/src/github.com/jive/containme",
+			Workspace: "/go/src/github.com/containme/containme",
 			BaseStage: BaseStage{
 				After: StepList{
 					Steps: []Step{
