@@ -30,36 +30,36 @@ var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "run a build",
 	Long:  ``,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		workdir, err = filepath.Abs(workdir)
 		if err != nil {
-			return errors.Wrapf(err, "could not find workdir")
+			ExitWithError(ExitError, errors.Wrapf(err, "could not find workdir"))
 		}
 
 		buildSpec, err := builder.ParseBuildSpecFile(cfgFile)
 		if err != nil {
-			return errors.Wrapf(err, "failed to parse %s", cfgFile)
+			ExitWithError(ExitError, errors.Wrapf(err, "failed to parse %s", cfgFile))
 		}
 
 		profileResolver, err := builder.NewProfileResolver(buildSpec.Environment.Profile)
 		if err != nil {
-			return errors.Wrapf(err, "failed to resolve profile")
+			ExitWithError(ExitError, errors.Wrapf(err, "failed to resolve profile"))
 		}
 
 		profile, err := profileResolver.ResolveProfile()
 		if err != nil {
-			return errors.Wrapf(err, "failed to resolve profile")
+			ExitWithError(ExitError, errors.Wrapf(err, "failed to resolve profile"))
 		}
 
 		b, err := builder.NewBuilder(workdir, buildSpec, profile)
 		if err != nil {
-			return errors.Wrapf(err, "failed to create builder")
+			ExitWithError(ExitError, errors.Wrapf(err, "failed to create builder"))
 		}
 
 		cacheID, err := b.ExecuteEnivronmentStage(!noEnvCache, state.EnvironmentImageCache)
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute environment stage")
+			ExitWithError(ExitError, errors.Wrapf(err, "failed to execute environment stage"))
 		}
 		if cacheID != "" {
 			state.EnvironmentImageCache = cacheID
@@ -72,15 +72,13 @@ var runCmd = &cobra.Command{
 			WriteState()
 		}
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute dependencies stage")
+			ExitWithError(ExitError, errors.Wrapf(err, "failed to execute dependencies stage"))
 		}
 
 		err = b.ExecuteTestStage()
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute test stage")
+			ExitWithError(ExitError, errors.Wrapf(err, "failed to execute test stage"))
 		}
-
-		return nil
 	},
 }
 
