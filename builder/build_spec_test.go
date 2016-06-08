@@ -21,8 +21,8 @@ dependencies:
     - bundle install: # note the colon here
         timeout: 240
         environment:
-          foo: bar
-          foo2: bar2
+          - foo=bar
+          - foo2=bar2
         pwd:
           test_dir
 
@@ -49,8 +49,8 @@ test:
 	assert.Equal("bundle install", spec.Dependencies.Override.Steps[1].Cmd)
 	assert.Equal(2, len(spec.Dependencies.Override.Steps[1].Env))
 	assert.Equal(240, spec.Dependencies.Override.Steps[1].Timeout)
-	assert.Equal("bar", spec.Dependencies.Override.Steps[1].Env["foo"])
-	assert.Equal("bar2", spec.Dependencies.Override.Steps[1].Env["foo2"])
+	assert.Equal("foo=bar", spec.Dependencies.Override.Steps[1].Env[0])
+	assert.Equal("foo2=bar2", spec.Dependencies.Override.Steps[1].Env[1])
 	assert.Equal("test_dir", spec.Dependencies.Override.Steps[1].Pwd)
 	assert.Equal(0, len(spec.Dependencies.After.Steps))
 

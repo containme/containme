@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/user"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -66,10 +68,10 @@ func (b *Builder) ExecInEnvironment(cmd string) error {
 }
 
 func (b *Builder) ExecuteEnivronmentStage(useCache bool, cacheImage string) (string, error) {
-	err := b.createVolumes()
+	/*err := b.createVolumes()
 	if err != nil {
 		return b.image, errors.Wrap(err, "failed to create volumes for cache directories")
-	}
+	}*/
 
 	if useCache && cacheImage != "" {
 		_, _, err := b.docker.ImageInspectWithRaw(context.TODO(), cacheImage, false)
@@ -86,7 +88,7 @@ EXECUTE_ENVIRONMENT_STAGE_NOCACHE:
 	b.image = b.profile.Image
 
 	for _, step := range b.spec.Environment.After.Steps {
-		err = b.runCmd("environment-after", step.Cmd, []string{}, DefaultCmdTimeout)
+		err := b.runStep("environment-after", step)
 		if err != nil {
 			return b.image, errors.Wrapf(err, "failed to run cmd(%s)", step.Cmd)
 		}
@@ -110,7 +112,7 @@ func (b *Builder) ExecuteDependenciesStage(useCache bool, cacheImage string) (st
 EXECUTE_DEPENDENCIES_STAGE_NOCACHE:
 	var err error
 	for _, step := range b.spec.Dependencies.Before.Steps {
-		err = b.runCmd("dependancies-before", step.Cmd, []string{}, DefaultCmdTimeout)
+		err = b.runStep("dependancies-before", step)
 		if err != nil {
 			return b.image, errors.Wrapf(err, "failed to run cmd(%s)", step.Cmd)
 		}
@@ -118,14 +120,14 @@ EXECUTE_DEPENDENCIES_STAGE_NOCACHE:
 
 	if len(b.spec.Dependencies.Override.Steps) > 0 {
 		for _, step := range b.spec.Dependencies.Override.Steps {
-			err = b.runCmd("dependancies-override", step.Cmd, []string{}, DefaultCmdTimeout)
+			err = b.runStep("dependancies-override", step)
 			if err != nil {
 				return b.image, errors.Wrapf(err, "failed to run cmd(%s)", step.Cmd)
 			}
 		}
 	} else {
 		for _, step := range b.profile.Dependencies {
-			err = b.runCmd("dependancies-default", step.Cmd, []string{}, DefaultCmdTimeout)
+			err = b.runStep("dependancies-default", step)
 			if err != nil {
 				return b.image, errors.Wrapf(err, "failed to run cmd(%s)", step.Cmd)
 			}
@@ -133,7 +135,7 @@ EXECUTE_DEPENDENCIES_STAGE_NOCACHE:
 	}
 
 	for _, step := range b.spec.Dependencies.After.Steps {
-		err = b.runCmd("dependancies-after", step.Cmd, []string{}, DefaultCmdTimeout)
+		err = b.runStep("dependancies-after", step)
 		if err != nil {
 			return b.image, errors.Wrapf(err, "failed to run cmd(%s)", step.Cmd)
 		}
@@ -145,7 +147,7 @@ EXECUTE_DEPENDENCIES_STAGE_NOCACHE:
 func (b *Builder) ExecuteTestStage() error {
 	var err error
 	for _, step := range b.spec.Test.Before.Steps {
-		err = b.runCmd("test-before", step.Cmd, []string{}, DefaultCmdTimeout)
+		err = b.runStep("test-before", step)
 		if err != nil {
 			return errors.Wrapf(err, "failed to run cmd(%s)", step.Cmd)
 		}
@@ -153,14 +155,14 @@ func (b *Builder) ExecuteTestStage() error {
 
 	if len(b.spec.Test.Override.Steps) > 0 {
 		for _, step := range b.spec.Test.Override.Steps {
-			err = b.runCmd("test-override", step.Cmd, []string{}, DefaultCmdTimeout)
+			err = b.runStep("test-override", step)
 			if err != nil {
 				return errors.Wrapf(err, "failed to run cmd(%s)", step.Cmd)
 			}
 		}
 	} else {
 		for _, step := range b.profile.Test {
-			err = b.runCmd("test-default", step.Cmd, []string{}, DefaultCmdTimeout)
+			err = b.runStep("test-default", step)
 			if err != nil {
 				return errors.Wrapf(err, "failed to run cmd(%s)", step.Cmd)
 			}
@@ -168,7 +170,7 @@ func (b *Builder) ExecuteTestStage() error {
 	}
 
 	for _, step := range b.spec.Test.After.Steps {
-		err = b.runCmd("test-after", step.Cmd, []string{}, DefaultCmdTimeout)
+		err = b.runStep("test-after", step)
 		if err != nil {
 			return errors.Wrapf(err, "failed to run cmd(%s)", step.Cmd)
 		}
@@ -205,6 +207,14 @@ func (b *Builder) destroyVolumes() error {
 		delete(b.volumes, b.profile.CacheDirectories[idx])
 	}
 	return nil
+}
+
+func (b *Builder) runStep(stage string, step Step) error {
+	timeout := DefaultCmdTimeout
+	if step.Timeout > 0 {
+		timeout = time.Duration(step.Timeout) * time.Second
+	}
+	return b.runCmd(stage, step.Cmd, step.Env, timeout)
 }
 
 func (b *Builder) runCmd(stage, cmd string, env []string, timeout time.Duration) error {
@@ -260,9 +270,17 @@ func (b *Builder) runCmdInImage(image, stage, cmd string, env []string, timeout 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	_, err = b.docker.ContainerWait(ctx, resp.ID)
-	if err != nil {
-		return "", errors.Wrapf(err, "build-step-%d exceeded timeout", b.stepCount)
+	containerWait := make(chan struct{})
+	go func() {
+		b.docker.ContainerWait(ctx, resp.ID)
+		containerWait <- struct{}{}
+	}()
+
+	select {
+	case <-ctx.Done():
+		b.docker.ContainerKill(context.TODO(), resp.ID, "")
+		return b.image, errors.Wrap(ctx.Err(), "timeout exceeded running cmd")
+	case <-containerWait:
 	}
 
 	wg.Wait()
@@ -297,6 +315,14 @@ func (b *Builder) containerConfig() (*container.Config, *container.HostConfig) {
 	hostConfig := &container.HostConfig{
 		Binds: []string{fmt.Sprintf("%s:%s", b.workdir, config.WorkingDir)},
 	}
+	for _, mount := range b.spec.Environment.Mounts {
+		if mount[:2] == "~/" {
+			usr, _ := user.Current()
+			mount = strings.Replace(mount, "~", usr.HomeDir, 1)
+		}
+		hostConfig.Binds = append(hostConfig.Binds, mount)
+	}
+	//hostConfig.Binds = append(hostConfig.Binds, b.spec.Environment.Mounts...)
 	for path, vol := range b.volumes {
 		hostConfig.Binds = append(hostConfig.Binds, fmt.Sprintf("%s:%s", vol, path))
 	}

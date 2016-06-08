@@ -1,6 +1,8 @@
 environment:
   workspace: github.com/containme/containme
   profile: ./containme.profile.yaml
+  mounts:
+    - /var/run/docker.sock:/var/run/docker.sock
   after:
     - apk add --update git curl
 

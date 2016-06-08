@@ -20,8 +20,9 @@ type BuildSpec struct {
 }
 
 type EnvironmentStage struct {
-	Profile   string `json:"profile"`
-	Workspace string `json:"workspace"`
+	Profile   string   `json:"profile"`
+	Workspace string   `json:"workspace"`
+	Mounts    []string `json:"mounts"`
 	BaseStage
 }
 
@@ -49,11 +50,11 @@ type PackageStageDocker struct {
 }
 
 type Step struct {
-	Cmd     string            `json:"cmd"`
-	Timeout int               `json:"timeout"`
-	Cache   bool              `json:"cache"`
-	Env     map[string]string `json:"environment"`
-	Pwd     string            `json:"pwd"`
+	Cmd     string   `json:"cmd"`
+	Timeout int      `json:"timeout"`
+	Cache   bool     `json:"cache"`
+	Env     []string `json:"environment"`
+	Pwd     string   `json:"pwd"`
 }
 
 type StepList struct {
@@ -71,20 +72,6 @@ func (sl *StepList) UnmarshalJSON(data []byte) error {
 		step := Step{}
 		stepData, _ := json.Marshal(steps[idx])
 		json.Unmarshal(stepData, &step)
-		// switch stepT := steps[idx].(type) {
-		// case string:
-		// 	step.Cmd = stepT
-		// case map[string]interface{}:
-		// 	for cmd, val := range stepT {
-		// 		stepData, _ := json.Marshal(val)
-		// 		json.Unmarshal(stepData, &step)
-		// 		step.Cmd = cmd
-		// 		break
-		// 	}
-		// default:
-		// 	fmt.Printf("unexpected type %T\n", stepT)
-		//
-		// }
 
 		sl.Steps = append(sl.Steps, step)
 	}
@@ -100,10 +87,10 @@ func (step *Step) UnmarshalJSON(data []byte) error {
 	case map[string]interface{}:
 		for cmd, val := range stepT {
 			alias := &struct {
-				Timeout int               `json:"timeout"`
-				Cache   bool              `json:"cache"`
-				Env     map[string]string `json:"environment"`
-				Pwd     string            `json:"pwd"`
+				Timeout int      `json:"timeout"`
+				Cache   bool     `json:"cache"`
+				Env     []string `json:"environment"`
+				Pwd     string   `json:"pwd"`
 			}{}
 			stepData, _ := json.Marshal(val)
 			json.Unmarshal(stepData, &alias)
