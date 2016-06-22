@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
@@ -85,6 +86,16 @@ func (b *Builder) ExecuteEnivronmentStage(useCache bool, cacheImage string) (str
 	}
 
 EXECUTE_ENVIRONMENT_STAGE_NOCACHE:
+	b.ui.Printf("****> Stage(environment-before): Pulling image(%s):\n\n", b.image)
+	reader, err := b.docker.ImagePull(context.TODO(), b.profile.Image, types.ImagePullOptions{})
+	if err != nil {
+		return "", errors.Wrap(err, "failed to pull image")
+	}
+	//TODO: display pull status
+	if _, err = ioutil.ReadAll(reader); err != nil {
+		return "", err
+	}
+
 	b.image = b.profile.Image
 
 	for _, step := range b.spec.Environment.After.Steps {
@@ -233,7 +244,7 @@ func (b *Builder) runCmdInImage(image, stage, cmd string, env []string, timeout 
 	config.Cmd = b.profile.MakeCmd(cmd)
 	//config.Env = append(config.Env, env...)
 
-	b.ui.Printf("Stage(%s): Running command (%s) for build-step-%d in image(%s):\n\n", stage, cmd, b.stepCount, b.image)
+	b.ui.Printf("****> Stage(%s): Running command (%s) for build-step-%d in image(%s):\n\n", stage, cmd, b.stepCount, b.image)
 
 	resp, err := b.docker.ContainerCreate(context.TODO(), config, hostConfig, nil, fmt.Sprintf("cme_builder_%s-%d", b.id, b.stepCount))
 	if err != nil {
