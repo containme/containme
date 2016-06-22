@@ -242,7 +242,7 @@ func (b *Builder) runCmd(stage, cmd string, env []string, timeout time.Duration)
 func (b *Builder) runCmdInImage(image, stage, cmd string, env []string, timeout time.Duration) (string, error) {
 	config, hostConfig := b.containerConfig()
 	config.Cmd = b.profile.MakeCmd(cmd)
-	//config.Env = append(config.Env, env...)
+	config.Env = processEnv(env)
 
 	b.ui.Printf("--> Stage(%s): Running command (%s) for build-step-%d in image(%s):\n\n", stage, cmd, b.stepCount, b.image)
 
@@ -295,6 +295,11 @@ func (b *Builder) runCmdInImage(image, stage, cmd string, env []string, timeout 
 	}
 
 	wg.Wait()
+
+	job, _ := b.docker.ContainerInspect(context.TODO(), resp.ID)
+	if job.State.ExitCode != 0 {
+		return b.image, errors.Errorf("command failed with exit code %d", job.State.ExitCode)
+	}
 
 	commit, err := b.docker.ContainerCommit(context.TODO(), resp.ID, types.ContainerCommitOptions{})
 	if err != nil {

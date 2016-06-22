@@ -1,7 +1,9 @@
 package builder
 
 import (
+	"fmt"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 	"unicode"
@@ -47,4 +49,13 @@ func cmdFields(cmd string) []string {
 	}
 
 	return strings.FieldsFunc(cmd, f)
+}
+
+func processEnv(env []string) []string {
+	for idx := range env {
+		if parts := strings.Split(env[idx], "="); len(parts) == 1 {
+			env[idx] = fmt.Sprintf("%s=%s", env[idx], os.Getenv(env[idx]))
+		}
+	}
+	return env
 }
