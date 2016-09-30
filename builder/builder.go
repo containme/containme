@@ -75,7 +75,7 @@ func (b *Builder) ExecuteEnivronmentStage(useCache bool, cacheImage string) (str
 	}*/
 
 	if useCache && cacheImage != "" {
-		_, _, err := b.docker.ImageInspectWithRaw(context.TODO(), cacheImage)
+		_, _, err := b.docker.ImageInspectWithRaw(context.TODO(), cacheImage, false)
 		if err != nil {
 			b.ui.Printf("recieved err for cached environment, proceeding without cache: %s", err)
 			goto EXECUTE_ENVIRONMENT_STAGE_NOCACHE
@@ -111,7 +111,7 @@ EXECUTE_ENVIRONMENT_STAGE_NOCACHE:
 
 func (b *Builder) ExecuteDependenciesStage(useCache bool, cacheImage string) (string, error) {
 	if useCache && cacheImage != "" {
-		_, _, err := b.docker.ImageInspectWithRaw(context.TODO(), cacheImage)
+		_, _, err := b.docker.ImageInspectWithRaw(context.TODO(), cacheImage, false)
 		if err != nil {
 			b.ui.Printf("recieved err for cached dependencies, proceeding without cache: %s", err)
 			goto EXECUTE_DEPENDENCIES_STAGE_NOCACHE
