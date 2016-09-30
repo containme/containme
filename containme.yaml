@@ -5,6 +5,7 @@ environment:
     - /var/run/docker.sock:/var/run/docker.sock
   after:
     - apk add --update git curl
+    - go get github.com/mitchellh/gox
 
 dependencies:
   before:
@@ -15,3 +16,5 @@ dependencies:
 test:
   override:
     - go test -v $(glide nv)
+  after:
+    - gox -parallel=4 -os="linux darwin windows" -arch="amd64"
