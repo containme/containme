@@ -211,7 +211,7 @@ func (b *Builder) createVolumes() error {
 
 func (b *Builder) destroyVolumes() error {
 	for idx := range b.profile.CacheDirectories {
-		err := b.docker.VolumeRemove(context.TODO(), b.volumes[b.profile.CacheDirectories[idx]], false)
+		err := b.docker.VolumeRemove(context.TODO(), b.volumes[b.profile.CacheDirectories[idx]])
 		if err != nil {
 			return errors.Wrap(err, "failed to create volume")
 		}
