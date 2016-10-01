@@ -17,4 +17,6 @@ test:
   override:
     - go test -v $(glide nv)
   after:
-    - gox -parallel=4 -os="linux darwin windows" -arch="amd64"
+    - gox -os="linux darwin windows" -arch="amd64":
+        environment:
+          - CGO_ENABLED=0
